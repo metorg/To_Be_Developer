@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sparta Vocabulary Notebook</title>
+    <title>detail(서적 상세)</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -21,10 +21,70 @@
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
 
+
+    <style>
+        .wrap{
+            width:600px;
+            margin: auto;
+        }
+
+        #comment-btn{
+            padding-left: 12px;
+            margin-left: 489px;
+            margin-bottom: 18px;
+            margin-top: 0px;
+        }
+
+        .img{
+            margin: 0 auto 10px auto;
+            width: 400px;
+            height: 300px;
+            border: 3px solid black;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+    </style>
+
 </head>
 
-<body>
+    <body>
 
-</div>
+
+
+    <div class="wrap"> <br>
+        <p class="img">책 사진 자리</p>
+       <div class="card text-center">
+        <div class="card-header">
+            책제목
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">소개</h5>
+            <p class="card-text"></p>
+        </div>
+        <div class="card-footer text-muted">
+            별점
+        </div>
+    </div>
+        <br>
+
+    <div class="input-group">
+        <span class="input-group-text">코멘트</span>
+        <textarea class="form-control" aria-label="With textarea"></textarea>
+    </div><br>
+        <button id="comment-btn" type="button" class="btn btn-outline-primary">코멘트 등록</button><br>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">아이디</th>
+            <th scope="col">날짜</th>
+            <th scope="col">코멘트</th>
+        </tr>
+        </thead>
+    </table>
+    </div>
+    
+
 </body>
 </html>

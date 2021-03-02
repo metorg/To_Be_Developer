@@ -20,44 +20,79 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
-    <style>
-
-        .wrap {
-            width: 600px;
-            height: 360px;
-            margin: 30px auto 0 auto;
+   <style>
+         .wrap {
+            background-color: white;
+            min-height: 100vh;
+            padding-bottom: 50px;
         }
 
-        .wrap .img {
-            width: 600px;
-            margin-bottom: 10px;
+        .banner {
+            margin-bottom: 50px;
+            width: 100%;
+            height: 300px;
+
+            background-color: white;
+            background-image: url('{{ url_for("static", filename="img02.jpg") }}');
+
+            background-position: center;
+            background-size: 400px;
+            background-repeat: no-repeat;
+
+            cursor: pointer;
         }
+       .login{
+           width :500px;
+           height :500px;
+           margin:auto;
+
+       }
+       .btn-primary{
+           text-align:center;
+       }
+       .form-group{
+           margin-bottom : 30px;
+       }
+
+   </style>
 
 
 
-
-    </style>
 </head>
 
 <body>
-    <div class="wrap">
-        <img class="img" src="../static/be my crew.jpg" >
+<div class="wrap">
+    <div class="banner" onclick="window.location.href = '/'">
+    </div>
 
-            <div id="id-input" class="input-group mb-3">
-            <span class="input-group-text" >Id</span>
-            <input type="text" class="form-control" aria-label="Sizing example input"
-                   aria-describedby="inputGroup-sizing-default">
-
-            <div class="input-group mb-3">
-                <span class="input-group-text" >PW</span>
-                <input type="text" class="form-control" aria-label="Sizing example input"
-                       aria-describedby="inputGroup-sizing-default">
-            </div>
-        </div>
+    <form class="login">
+          <div class="form-group">
+            <label for="exampleInputEmail1">ID </label>
+            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="ID">
+          </div>
+        <button type="button-sm" class="btn btn-danger">아이디 중복확인</button>
 
 
+          <div class="form-group">
+            <label for="exampleInputPassword1">Password</label>
+            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+          </div>
 
-</div>
+         <div class="form-group">
+            <label for="exampleInputPassword1">Confirm Password</label>
+            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+          </div>
+          <div class="form-check">
+
+
+
+
+          </div>
+          <button type="submit" class="btn btn-primary">submit</button>
+        </form>
+
+    </div>
 </div>
 </body>
 </html>
+
