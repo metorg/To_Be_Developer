@@ -35,7 +35,8 @@ def home():
 
 @app.route('/api/list', methods=['GET'])
 def show_books():
-    books = list(db_book.books.find({}, {'_id': False}).sort('rating', -1))
+    books = list(db_book.books.find({}, {'_id': False}))
+    books = sorted(books, key=lambda x: float(x['rating']), reverse=True)
     return jsonify({'books_list': books})
 
 

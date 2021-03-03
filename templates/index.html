@@ -25,8 +25,8 @@
             showbooks();
         });*/
         function showbooks() {
-                $('#cards-box').empty()
-           console.log($('#inputGroupSelect04 option:selected').val())
+            $('#cards-box').empty()
+            console.log($('#inputGroupSelect04 option:selected').val())
             console.log($('#inputGroupSelect05 option:selected').val())
 
 
@@ -49,7 +49,7 @@
                         if($('#inputGroupSelect04 option:selected').val()==type&&$('#inputGroupSelect05 option:selected').val()==channel) {
 
 
-                                             let temp_html =  `<div class="card " style="width :400px;margin: 50px 60px 50px 60px;">
+                                             let temp_html =  `<div class="card " style="width :450px;margin: 50px 60px 50px 60px">
                                                     <img src="${img_url}" class="card-img-top" alt="...">
                                                     <div class="card-body">
                                                         <h5 style="font-weight:bold;margin-bottom:10px ,class="card-title">제목 : ${title}</h5>
@@ -70,6 +70,7 @@
         }
     </script>
     <style>
+
         .wrap {
             background-color: ivory;
             min-height: 100vh;
@@ -90,6 +91,12 @@
 
             cursor: pointer;
         }
+        .card-columns {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
 
         .btn-group {
             margin-left: 700px;
@@ -132,7 +139,7 @@
                 </select>
                     <button class="btn btn-outline-secondary" type="button" onclick="showbooks()"> 검색 </button>
                 </div>
-                <div class="card-columns"  id="cards-box" ></div>
+                <div class="card-columns"  id="cards-box"></div>
         </div>
 
     </body>
