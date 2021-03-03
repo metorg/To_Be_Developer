@@ -13,9 +13,11 @@ app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
 
 SECRET_KEY = 'SPARTA'
 
-client = MongoClient('mongodb://13.209.67.251', 27017, username="test", password="test")
-db = client.dbsparta_plus_week4
-db2= client.dbsparta_plus_week3
+
+db_id = client.dbsparta_plus_week4
+db_book = client.dbsparta_plus_week3
+db_comment = client.dbsparta_plus_week3
+
 
 
 @app.route('/')
@@ -23,7 +25,7 @@ def home():
     token_receive = request.cookies.get('mytoken')
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
-        user_info = db.users.find_one({"username": payload["id"]})
+        user_info = db_id.users.find_one({"username": payload["id"]})
 
         return render_template('index.html', user_info=user_info)
     except jwt.ExpiredSignatureError:
@@ -33,8 +35,9 @@ def home():
 
 @app.route('/api/list', methods=['GET'])
 def show_books():
-    books_list = list(db2.books.find({}, {'_id': False}).sort('rating',-1))
-    return jsonify({'books_list': books_list})
+    books = list(db_book.books.find({}, {'_id': False}).sort('rating', -1))
+    return jsonify({'books_list': books})
+
 
 @app.route('/login')
 def login():
@@ -50,7 +53,7 @@ def user(username):
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
         status = (username == payload["id"])  # 내 프로필이면 True, 다른 사람 프로필 페이지면 False
 
-        user_info = db.users.find_one({"username": username}, {"_id": False})
+        user_info = db_id.users.find_one({"username": username}, {"_id": False})
         return render_template('user.html', user_info=user_info, status=status)
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
@@ -63,7 +66,7 @@ def sign_in():
     password_receive = request.form['password_give']
 
     pw_hash = hashlib.sha256(password_receive.encode('utf-8')).hexdigest()
-    result = db.users.find_one({'username': username_receive, 'password': pw_hash})
+    result = db_id.users.find_one({'username': username_receive, 'password': pw_hash})
 
     if result is not None:
         payload = {
@@ -91,14 +94,14 @@ def sign_up():
         # "profile_pic_real": "profile_pics/profile_placeholder.png", # 프로필 사진 기본 이미지
         # "profile_info": ""                                          # 프로필 한 마디
     }
-    db.users.insert_one(doc)
+    db_id.users.insert_one(doc)
     return jsonify({'result': 'success'})
 
 
 @app.route('/sign_up/check_dup', methods=['POST'])
 def check_dup():
     username_receive = request.form['username_give']
-    exists = bool(db.users.find_one({"username": username_receive}))
+    exists = bool(db_id.users.find_one({"username": username_receive}))
     return jsonify({'result': 'success', 'exists': exists})
 
 
@@ -144,6 +147,30 @@ def update_like():
         return jsonify({"result": "success", 'msg': 'updated'})
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
+
+@app.route('/comment')
+def comment_home():
+    return render_template('detail.html')
+
+@app.route('/comment', methods=['POST'])
+def write_comment():
+    review_receive = request.form['review_give']
+
+    doc = {
+        'review':review_receive
+    }
+
+    db_comment.bookreview.insert_one(doc)
+
+    return jsonify({'msg': '저장 완료!'})
+
+@app.route('/comment/list', methods=['GET'])
+def read_comment():
+    reviews = list(db_comment.bookreview.find({}, {'_id': False}))
+    return jsonify({'all_reviews': reviews})
+
+
+
 
 
 if __name__ == '__main__':
