@@ -13,8 +13,9 @@ app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
 
 SECRET_KEY = 'SPARTA'
 
-
+client = MongoClient('mongodb://13.209.67.251', 27017, username="test", password="test")
 db = client.dbsparta_plus_week4
+db2= client.dbsparta_plus_week3
 
 
 @app.route('/')
@@ -22,13 +23,18 @@ def home():
     token_receive = request.cookies.get('mytoken')
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        user_info = db.users.find_one({"username": payload["id"]})
 
-        return render_template('index.html')
+        return render_template('index.html', user_info=user_info)
     except jwt.ExpiredSignatureError:
         return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
 
+@app.route('/api/list', methods=['GET'])
+def show_books():
+    books_list = list(db2.books.find({}, {'_id': False}).sort('rating',-1))
+    return jsonify({'books_list': books_list})
 
 @app.route('/login')
 def login():
@@ -64,7 +70,7 @@ def sign_in():
          'id': username_receive,
          'exp': datetime.utcnow() + timedelta(seconds=60 * 60 * 24)  # 로그인 24시간 유지
         }
-        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256').decode('utf-8')
+        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
         return jsonify({'result': 'success', 'token': token})
     # 찾지 못하면
