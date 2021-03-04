@@ -3,7 +3,6 @@ import jwt
 import datetime
 import hashlib
 from flask import Flask, render_template, jsonify, request, redirect, url_for
-from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 
 
@@ -13,10 +12,12 @@ app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
 
 SECRET_KEY = 'SPARTA'
 
+client = MongoClient('mongodb://13.209.67.251', 27017, username="test", password="test")
 
 db_id = client.dbsparta_plus_week4
 db_book = client.dbsparta_plus_week3
 db_comment = client.dbsparta_plus_week3
+
 
 
 
@@ -26,18 +27,11 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
         user_info = db_id.users.find_one({"username": payload["id"]})
-
         return render_template('index.html', user_info=user_info)
     except jwt.ExpiredSignatureError:
         return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
-
-@app.route('/api/list', methods=['GET'])
-def show_books():
-    books = list(db_book.books.find({}, {'_id': False}))
-    books = sorted(books, key=lambda x: float(x['rating']), reverse=True)
-    return jsonify({'books_list': books})
 
 
 @app.route('/login')
@@ -46,18 +40,14 @@ def login():
     return render_template('login.html', msg=msg)
 
 
-@app.route('/user/<username>')
-def user(username):
-    # 각 사용자의 프로필과 글을 모아볼 수 있는 공간
-    token_receive = request.cookies.get('mytoken')
-    try:
-        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
-        status = (username == payload["id"])  # 내 프로필이면 True, 다른 사람 프로필 페이지면 False
+@app.route('/api/list', methods=['GET'])
+def show_books():
+    books = list(db_book.books.find({}, {'_id': False}))
+    books = sorted(books, key=lambda x: float(x['rating']), reverse=True)
+    return jsonify({'books_list': books})
 
-        user_info = db_id.users.find_one({"username": username}, {"_id": False})
-        return render_template('user.html', user_info=user_info, status=status)
-    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
-        return redirect(url_for("home"))
+
+
 
 
 @app.route('/sign_in', methods=['POST'])
@@ -72,7 +62,8 @@ def sign_in():
     if result is not None:
         payload = {
          'id': username_receive,
-         'exp': datetime.utcnow() + timedelta(seconds=60 * 60 * 24)  # 로그인 24시간 유지
+         'exp': datetime.utcnow() + timedelta(seconds=60*60*24)
+
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
@@ -106,71 +97,40 @@ def check_dup():
     return jsonify({'result': 'success', 'exists': exists})
 
 
-@app.route('/update_profile', methods=['POST'])
-def save_img():
-    token_receive = request.cookies.get('mytoken')
-    try:
-        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
-        # 프로필 업데이트
-        return jsonify({"result": "success", 'msg': '프로필을 업데이트했습니다.'})
-    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
-        return redirect(url_for("home"))
-
 
 @app.route('/posting', methods=['POST'])
 def posting():
     token_receive = request.cookies.get('mytoken')
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
-        # 포스팅하기
-        return jsonify({"result": "success", 'msg': '포스팅 성공'})
+        user_info = db_id.users.find_one({"username": payload["id"]})
+        comment_receive = request.form["comment_give"]
+        date_receive = request.form["date_give"]
+        book_number_receive= request.form["book_number_give"]
+        #북의 인덱스값을 받아와야함
+        doc = {
+            "username": user_info["username"],
+            "profile_name": user_info["profile_name"],
+            "comment": comment_receive,
+            "book_number":book_number_receive,
+            "date": date_receive
+        }
+        db_book.posts.insert_one(doc)
+        return jsonify({"result": "success", 'msg': '스팅 성공'})
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
-
 
 @app.route("/get_posts", methods=['GET'])
 def get_posts():
     token_receive = request.cookies.get('mytoken')
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
-        # 포스팅 목록 받아오기
-        return jsonify({"result": "success", "msg": "포스팅을 가져왔습니다."})
+        posts = list(db_book.posts.find({}).sort("date", -1).limit(20))
+        for post in posts:
+            post["_id"] = str(post["_id"])
+        return jsonify({"result": "success", "msg": "포스팅을 가져왔습니다.","posts":posts})
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
-
-
-@app.route('/update_like', methods=['POST'])
-def update_like():
-    token_receive = request.cookies.get('mytoken')
-    try:
-        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
-        # 좋아요 수 변경
-        return jsonify({"result": "success", 'msg': 'updated'})
-    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
-        return redirect(url_for("home"))
-
-@app.route('/comment')
-def comment_home():
-    return render_template('detail.html')
-
-@app.route('/comment', methods=['POST'])
-def write_comment():
-    review_receive = request.form['review_give']
-
-    doc = {
-        'review':review_receive
-    }
-
-    db_comment.bookreview.insert_one(doc)
-
-    return jsonify({'msg': '저장 완료!'})
-
-@app.route('/comment/list', methods=['GET'])
-def read_comment():
-    reviews = list(db_comment.bookreview.find({}, {'_id': False}))
-    return jsonify({'all_reviews': reviews})
-
-
 
 
 

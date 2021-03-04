@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sparta Vocabulary Notebook</title>
+    <link href="/static/img01.jpg" rel="shortcut icon" type="image/x-icon">
+    <title>To_Be_Developer</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -21,9 +22,75 @@
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
     <script>
-        /*$(document).ready(function(){
-            showbooks();
-        });*/
+
+        function post(i) {
+
+            let comment = $("#text-post-" + i).val()
+            let today = new Date().toISOString()
+            let book_number = i;
+
+            $.ajax({
+                type: "POST",
+                url: "/posting",
+                data: {
+                    comment_give: comment,
+                    date_give: today,
+                    book_number_give: book_number
+                },
+                success: function (response) {
+                    alert("코멘트가 작성되었습니다.")
+                    window.location.reload()
+                }
+            })
+        }
+
+        function time2str(date) {
+            let today = new Date()
+            let time = (today - date) / 1000 / 60  // 분
+
+            if (time < 60) {
+                return parseInt(time) + "분 전"
+            }
+            time = time / 60  // 시간
+            if (time < 24) {
+                return parseInt(time) + "시간 전"
+            }
+            time = time / 24
+            if (time < 7) {
+                return parseInt(time) + "일 전"
+            }
+            return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`
+        }
+
+        function get_posts(j) {
+
+            $.ajax({
+                type: "GET",
+                url: "/get_posts",
+                data: {},
+                success: function (response) {
+                    let comments = response['posts']
+                    for (let i = 0; i < comments.length; i++) {
+
+                        let username = comments[i]["username"]
+                        let time_post = new Date(comments[i]["date"])
+                        let time_before = time2str(time_post)
+                        let comment = comments[i]['comment']
+                        if (comments[i]['book_number'] == j) {
+                            let tmp_html = `<tr>
+                             <td>${username}</td>
+                             <td>${time_before}</td>
+                             <td>${comment}</td>
+                             </tr>`
+                            $('#table-box-' + j).append(tmp_html)
+                        }
+
+                    }
+                }
+            })
+        }
+
+
         function showbooks() {
             $('#cards-box').empty()
             console.log($('#inputGroupSelect04 option:selected').val())
@@ -43,39 +110,83 @@
                         let artist = mybooks[i]['artist']
                         let rating = mybooks[i]['rating']
                         let type = mybooks[i]['type']
-                        let channel = mybooks[i]['channel']
-                        let cnt = mybooks[i]['cnt']
-
-                        if($('#inputGroupSelect04 option:selected').val()==type&&$('#inputGroupSelect05 option:selected').val()==channel) {
+                        let book_index = i;
 
 
-                                             let temp_html =  `<div class="card " style="width :450px;margin: 50px 60px 50px 60px">
-                                                    <img src="${img_url}" class="card-img-top" alt="...">
-                                                    <div class="card-body">
+                        if ($('#inputGroupSelect04 option:selected').val() == type) {
+
+
+                            let temp_html = `<div class="img_modal" style="max-width: 370px; margin: auto">
+                                             <div class="card" style="max-width: 370px; margin:0 auto 20px auto">
+                                                    <img style="max-width: 370px; margin: auto" style="margin: auto" class="btn"onClick="${img_url}" data-bs-toggle="modal" data-bs-target="#exampleModal-${book_index}" src="${img_url}" class="card-img-top" >
+                                                    <div class="card-body" style="max-width: 370px; margin: auto" >
                                                         <h5 style="font-weight:bold;margin-bottom:10px ,class="card-title">제목 : ${title}</h5>
                                                         <h6>저자 :${artist}</h6>
                                                         <p class="card-text">분류 : ${type}<br>
                                                     </div>
                                                     <div class="card-footer">
-                                                        <small style ="font-weight:bold;"class="text-muted">평점 : ${rating}</small>
+                                                        <small style ="color: #e8344e; font-weight:bold;"class="text-muted">평점 : ${rating}</small>
                                                     </div>
+                                                </div>
+                                                     <div class = "modal fade" id = "exampleModal-${book_index}" tabIndex = "-1" aria-labelledby = "exampleModalLabel-${book_index}" aria-hidden = "true">
+                                                 <div class = "modal-dialog modal-lg" >
+                                                    <div class = "modal-content" >
+                                                        <div class = "modal-header" >
+                                                            <h5 class = "modal-title" id = "exampleModalLabel-${book_index}"></h5>
+                                                                <img style = "max-width: 100px" src ="${img_url}"><h4 style="font-weight:bold">제목: ${title}</h4>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                    </div>
+                                                                     <div class="modal-body"><br>
+
+                                                                            <div class="field">
+                                                                             <h5>저자: ${artist}</h5>
+                                                                             <h6>평점: ${rating}</h6>
+                                                                                <div class="input-group">
+                                                                                  <span class="input-group-text">코멘트</span>
+                                                                                  <textarea id='text-post-${book_index}' class="form-control" aria-label="코멘트" aira-labelledby="exampleModalLabel-${book_index}"></textarea>
+                                                                                </div>
+                                                                              </div>
+                                                                              <table class="table" id='table-box-${book_index}'>
+                                                                                  <thead>
+                                                                                    <tr>
+                                                                                        <th scope="col">아이디</th>
+                                                                                        <th scope="col">날짜</th>
+                                                                                        <th scope="col">코멘트</th>
+                                                                                    </tr>
+                                                                                    </thead>
+                                                                                </table>
+                                                                                <div class="modal-footer">
+                                                                                <button onclick="post(${book_index})" type="button" class="btn btn-primary">포스팅하기</button>
+                                                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                                                                                        </div>
+                                                                                       </div>
+                                                                                      </div>
+                                                                                     </div>
+
                                                 </div>`
 
 
                             $('#cards-box').append(temp_html)
+                            get_posts(i);
                         }
                     }
                 }
             })
         }
+
     </script>
     <style>
+
+        .btn {
+            filter: drop-shadow(2px 4px 4px #000000);
+        }
 
         .wrap {
             background-color: ivory;
             min-height: 100vh;
             padding-bottom: 50px;
         }
+
 
         .banner {
             margin-bottom: 50px;
@@ -91,56 +202,62 @@
 
             cursor: pointer;
         }
+
         .card-columns {
+            width: 1200px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
+            margin: auto;
         }
-
-
-        .btn-group {
-            margin-left: 700px;
-            display: block;
-
-        }
-
-       .dropdown-item{
-           width:200px;
-       }
-        .search_button{
-            margin-left:200px;
-            display:block;
-        }
-
-
 
     </style>
 
 </head>
 
-    <body>
-        <div class="wrap">
-            <div class="banner" onclick="window.location.href = '/'"></div>
-                <div class="input-group">
-                <select style="width:50px; margin-bottom:50px;" class="custom-select" id="inputGroupSelect04" aria-label="Example select with button addon">
-                    <option selected>Choose...</option>
-                    <option value="알고리즘">알고리즘</option>
-                    <option value="자료구조">자료구조</option>
-                    <option value="Spring/SpringBoot">Spring</option>
-                    <option value="React/ReactNative">React/ReactNative</option>
-                    <option value="Node.js">Node.js</option>
+<body>
+<div class="wrap">
+    <div class="banner"></div>
+    <div class="input-group" style="width: 600px; margin: auto">
+        <select style="width:50px; margin-bottom:50px;" class="custom-select" id="inputGroupSelect04"
+                aria-label="Example select with button addon">
+            <option selected>Choose...</option>
+            <option value="알고리즘">알고리즘</option>
+            <option value="자료구조">자료구조</option>
+            <option value="Spring/SpringBoot">Spring</option>
+            <option value="React/ReactNative">React/ReactNative</option>
+            <option value="Node.js">Node.js</option>
 
-                </select>
-                <select style="width:50px; margin-bottom:50px;" class="custom-select" id="inputGroupSelect05" aria-label="Example select with button addon">
-                    <option selected>Choose...</option>
-                    <option value="서적">서적</option>
-                    <option value="Youtube">Youtube</option>
+        </select>
+        <button style="margin-left: 10px; height: 40px" type="button" class="btn btn-btn btn-danger"
+                onclick="showbooks()">검색
+        </button>
+    </div>
 
-                </select>
-                    <button class="btn btn-outline-secondary" type="button" onclick="showbooks()"> 검색 </button>
+
+    <div class="registermodal">
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="input-group">
+                            <span class="input-group-text">코멘트</span>
+                            <textarea class="form-control" aria-label="With textarea"></textarea>
+                        </div>
+
+                    </div>
                 </div>
-                <div class="card-columns"  id="cards-box"></div>
+            </div>
         </div>
+    </div>
 
-    </body>
+
+    <div class="card-columns" id="cards-box"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+</body>
 </html>
+
